@@ -174,10 +174,14 @@ public class HostEmulationManager {
                     // Resolve to default
                     // Check if resolvedService requires unlock
                     ApduServiceInfo defaultServiceInfo = resolveInfo.defaultService;
-                    if (defaultServiceInfo.requiresUnlock() &&
-                            mKeyguard.isKeyguardLocked() && mKeyguard.isKeyguardSecure()) {
-                        // Just ignore all future APDUs until next tap
+                    if ((defaultServiceInfo.requiresUnlock()
+                            || NfcService.getInstance().isSecureNfcEnabled())
+                          && mKeyguard.isKeyguardLocked()
+                          && mKeyguard.isKeyguardSecure()) {
+                        NfcService.getInstance().sendRequireUnlockIntent();
+                        NfcService.getInstance().sendData(AID_NOT_FOUND);// Just ignore all future APDUs until next tap
                         mState = STATE_W4_DEACTIVATE;
+                        if (DBG) Log.d(TAG, "requiresUnlock()! show toast");
                         launchTapAgain(resolveInfo.defaultService, resolveInfo.category);
                         return;
                     }
